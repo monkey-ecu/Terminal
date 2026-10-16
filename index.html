@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>CryptoSniffer V1.0 | Premium</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        @supports (height: 100dvh) {
+            html, body {
+                height: 100dvh;
+            }
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000;
+            color: #ff4444;
+            display: flex;
+            flex-direction: column;
+            zoom: 1;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        
+        /* Barra superior */
+        .app-header {
+            background: #ffffff;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 12px;
+            padding-top: calc(8px + env(safe-area-inset-top, 0px));
+            padding-left: calc(12px + env(safe-area-inset-left, 0px));
+            padding-right: calc(12px + env(safe-area-inset-right, 0px));
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+            flex-shrink: 0;
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 0 0 auto;
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .brand-icon {
+            display: block;
+            width: 38px;
+            height: 38px;
+            flex: 0 0 38px;
+        }
+        
+        .stat-icon {
+            width: 14px;
+            height: 14px;
+            flex: 0 0 14px;
+            vertical-align: -2px;
+            color: #64748b;
+        }
+        
+        .header-stats {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            color: #64748b;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        
+        .header-stats b {
+            color: #0f172a;
+        }
+        
+        .header-stats .found-amount {
+            color: #16a34a;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            flex: 0 0 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+        
+        .status-dot.running {
+            background: #16a34a;
+            animation: statusPulse 1.6s infinite;
+        }
+        
+        @keyframes statusPulse {
+            0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+            70% { box-shadow: 0 0 0 7px rgba(22, 163, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+        }
+        
+        .exit-btn {
+            width: 40px;
+            height: 40px;
+            flex: 0 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            background: #f8fafc;
+            color: #334155;
+            cursor: pointer;
+        }
+        
+        .exit-btn:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        
+        button:focus-visible {
+            outline: 2px solid #f7931a;
+            outline-offset: 2px;
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .status-dot.running { animation: none; }
+        }
+        
+        /* Contenedor principal */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Pantalla de configuración */
+        .config-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 40px;
+        }
+        
+        .config-screen.hidden {
+            display: none;
+        }
+        
+        .config-box {
+            border: 2px solid #0f0;
+            padding: 40px;
+            background: #000;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .config-title {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #0f0;
+        }
+        
+        .config-field {
+            margin-bottom: 25px;
+        }
+        
+        .config-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0f0;
+            font-size: 14px;
+        }
+        
+        .config-field input, .config-field select {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+        
+        .start-btn {
+            width: 100%;
+            padding: 15px;
+            background: #0f0;
+            color: #000;
+            border: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        /* Terminal */
+        .terminal {
+            flex: 1;
+            background: #000;
+            padding: 5px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .terminal-content {
+            flex: 1;
+            width: 100%;
+            overflow-y: auto;
+            font-size: 11px;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+        
+        .terminal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .terminal-content::-webkit-scrollbar-track {
+            background: #000;
+        }
+        
+        .terminal-content::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+        
+        .line {
+            padding: 1px 0;
+            animation: fadeIn 0.05s ease-in;
+            white-space: nowrap;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .line.invalid {
+            color: #ff4444;
+        }
+        
+        .line.valid {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            font-weight: bold;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        /* Columnas compactas - MÍNIMO ESPACIO */
+        .data-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            min-width: 100%;
+            overflow: hidden;
+        }
+        
+        .col-date {
+            flex: 0 0 auto;
+            min-width: 170px;
+        }
+        
+        .col-sep {
+            flex: 0 0 auto;
+            padding: 0 2px;
+        }
+        
+        .col-address {
+            flex: 0 0 auto;
+            min-width: 200px;
+        }
+        
+        .col-mnemonic {
+            flex: 1 1 420px;
+            min-width: 420px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .col-type {
+            flex: 0 0 auto;
+            min-width: 90px;
+        }
+        
+        .col-balance {
+            flex: 0 0 auto;
+            min-width: 135px;
+            text-align: right;
+        }
+        
+        /* Barra inferior con botones */
+        .bottom-bar {
+            height: 50px;
+            background: #111;
+            border-top: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            flex-shrink: 0;
+            gap: 10px;
+        }
+        
+        .btn-left {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .btn-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 40px;
+            padding: 0 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.02em;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+        
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+        }
+        
+        .btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+        
+        .btn:disabled {
+            background: #1a1d22;
+            border-color: #2a2f36;
+            color: #5b6470;
+            cursor: not-allowed;
+        }
+        
+        .btn-continue.active {
+            background: linear-gradient(135deg, #22e07a, #12b45a);
+            color: #04210f;
+            box-shadow: 0 4px 14px rgba(34, 224, 122, 0.3);
+            cursor: pointer;
+        }
+        
+        .btn-stop.active {
+            background: linear-gradient(135deg, #ff6b6b, #e03131);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 90, 90, 0.3);
+            cursor: pointer;
+        }
+        
+        .btn-download:not(:disabled) {
+            background: rgba(56, 160, 255, 0.12);
+            border-color: rgba(56, 160, 255, 0.55);
+            color: #6cbcff;
+            cursor: pointer;
+        }
+        
+        .btn:not(:disabled):hover {
+            filter: brightness(1.1);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal {
+            border: 2px solid #ff5f56;
+            background: #1a0000;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .modal-title {
+            color: #ff5f56;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            padding: 10px 25px;
+            border: 1px solid;
+            background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+        }
+        
+        .modal-btn.yes {
+            color: #ff5f56;
+            border-color: #ff5f56;
+        }
+        
+        .modal-btn.no {
+            color: #0f0;
+            border-color: #0f0;
+        }
+        
+        /* Móvil */
+        .modal {
+            width: calc(100% - 32px);
+            max-width: 420px;
+        }
+        
+        .modal-btn {
+            min-height: 44px;
+        }
+        
+        /* Tres botones del mismo tamaño en una sola fila */
+        .bottom-bar {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            height: auto;
+            min-height: 50px;
+            padding-top: 8px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+            padding-left: calc(10px + env(safe-area-inset-left, 0px));
+            padding-right: calc(10px + env(safe-area-inset-right, 0px));
+        }
+        
+        .btn-left,
+        .btn-right {
+            display: contents;
+        }
+        
+        .btn {
+            width: 100%;
+            min-width: 0;
+            min-height: 44px;
+            white-space: nowrap;
+        }
+        
+        /* Scroll horizontal de la terminal */
+        .terminal-content {
+            overflow-x: auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+        }
+        
+        .terminal-content::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .data-row {
+            width: max-content;
+            min-width: 100%;
+        }
+        
+        /* Pantalla principal */
+        .home-screen {
+            position: absolute;
+            inset: 0;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            padding: 24px;
+            overflow-y: auto;
+            background: radial-gradient(circle at 50% 30%, #151f32 0%, #090d16 70%);
+        }
+        
+        .home-screen.hidden {
+            display: none;
+        }
+        
+        .home-logo {
+            width: min(46vw, 200px);
+            height: min(46vw, 200px);
+            filter: drop-shadow(0 8px 24px rgba(247, 147, 26, 0.3));
+        }
+        
+        .home-title {
+            text-align: center;
+            color: #fff;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .home-title small {
+            display: block;
+            margin-top: 6px;
+            color: #f7931a;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+        }
+        
+        .home-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: min(100%, 320px);
+        }
+        
+        .home-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            height: 52px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: transform 0.15s ease, filter 0.2s ease;
+        }
+        
+        .home-btn svg {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+        }
+        
+        .home-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .home-btn.primary {
+            border-color: transparent;
+            background: linear-gradient(135deg, #22e07a, #12b45a);
+            color: #04210f;
+            box-shadow: 0 6px 20px rgba(34, 224, 122, 0.3);
+        }
+        
+        /* Botón de pantalla completa */
+        .fs-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            height: 44px;
+            margin-bottom: 20px;
+            border: 1px solid #0f0;
+            background: transparent;
+            color: #0f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .fs-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .fs-hint {
+            display: none;
+            margin: -10px 0 16px;
+            color: #9aa;
+            font-size: 11px;
+            text-align: center;
+        }
+        
+        .fs-hint.show {
+            display: block;
+        }
+        
+        /* Ajustes y soporte */
+        .sheet-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .sheet-overlay.show {
+            display: flex;
+        }
+        
+        .sheet {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            border-radius: 20px 20px 0 0;
+            background: #fff;
+            color: #0f172a;
+        }
+        
+        .sheet h2 {
+            margin-bottom: 14px;
+            font-size: 16px;
+        }
+        
+        .sheet p {
+            margin-bottom: 14px;
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .sheet-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            font-size: 13px;
+        }
+        
+        .sheet-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .sheet-btn {
+            min-width: 44px;
+            height: 44px;
+            padding: 0 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+            color: #0f172a;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .sheet-btn.close {
+            width: 100%;
+            margin-top: 6px;
+            background: #0f172a;
+            color: #fff;
+        }
+        
+        @media (max-width: 640px) {
+            .config-screen {
+                padding: 16px;
+                overflow-y: auto;
+                justify-content: flex-start;
+            }
+            
+            .config-box {
+                padding: 20px;
+                margin: auto 0;
+            }
+            
+            .config-title {
+                font-size: 18px;
+                margin-bottom: 20px;
+            }
+            
+            .config-field input, .config-field select {
+                font-size: 16px;
+            }
+            
+            .bottom-bar {
+                gap: 6px;
+            }
+            
+            .btn {
+                padding: 0 6px;
+                font-size: 11px;
+                gap: 5px;
+            }
+        }
+        
+        @media (max-width: 420px) {
+            .header-stats .stat-extra {
+                display: none;
+            }
+            
+            .header-stats {
+                gap: 6px;
+                font-size: 10px;
+            }
+            
+            .brand-name {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="brand">
+            <svg class="brand-icon" viewBox="0 0 200 200" role="img" aria-label="CryptoSniffer" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="fondoCirculo" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#151f32"/><stop offset="100%" stop-color="#090d16"/></radialGradient>
+                    <linearGradient id="oroCripto" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFE07D"/><stop offset="50%" stop-color="#F7931A"/><stop offset="100%" stop-color="#A65F08"/></linearGradient>
+                    <linearGradient id="aceroPremium" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#4A5568"/><stop offset="50%" stop-color="#CBD5E1"/><stop offset="100%" stop-color="#1E293B"/></linearGradient>
+                    <linearGradient id="madera" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8A5A36"/><stop offset="100%" stop-color="#4A2E1B"/></linearGradient>
+                    <filter id="sombra" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.6"/></filter>
+                </defs>
+                <g id="logoShapes">
+                <circle cx="100" cy="100" r="94" fill="url(#fondoCirculo)" stroke="url(#oroCripto)" stroke-width="4" filter="url(#sombra)"/>
+                <g filter="url(#sombra)" transform="translate(100, 115) scale(0.72) rotate(-45) translate(-100, -115)">
+                    <rect x="97" y="35" width="6" height="145" rx="3" fill="url(#madera)"/>
+                    <path d="M65,41 C80,36 94,38 100,39 C106,38 120,36 135,41 C120,27 80,27 65,41 Z" fill="url(#aceroPremium)" stroke="#1A202C" stroke-width="1"/>
+                    <rect x="95" y="37" width="10" height="7" fill="#1E293B" rx="1"/>
+                </g>
+                <g transform="translate(62, 70)" filter="url(#sombra)">
+                    <circle cx="38" cy="38" r="36" fill="url(#oroCripto)" stroke="#FFF" stroke-width="1.5"/>
+                    <path d="M51.2,31.7 C51.9,26.9 48.3,24.4 41.7,22.7 L43.9,13.9 L38.6,12.6 L36.4,21.4 C35,21.1 33.6,20.8 32.2,20.5 L34.4,11.7 L29.1,10.4 L26.9,19.2 C25.8,18.9 24.7,18.7 23.7,18.4 L23.7,18.4 L16.4,16.6 L14.9,22.5 C14.9,22.5 18.8,23.4 18.7,23.5 C20.9,24.1 21.4,25.7 21.1,27.0 L17.5,41.6 C17.3,42.3 16.7,43.9 15.0,43.5 C15.1,43.6 11.2,42.6 11.2,42.6 L8.6,48.7 L15.5,50.4 C16.8,50.7 18.1,51.0 19.3,51.4 L17.1,60.2 L22.4,61.5 L24.6,52.7 C26,53 27.3,53.3 28.6,53.5 L26.4,62.3 L31.7,63.6 L33.9,54.8 C43.0,56.5 49.9,54.0 51.9,45.4 C53.5,38.6 51.0,34.7 51.2,31.7 Z M42.1,46.0 C40.5,52.5 29.5,48.5 25.4,47.5 L27.7,38.2 C31.8,39.2 43.8,40.1 42.1,46.0 Z M43.6,30.6 C42.1,36.5 32.9,33.1 29.4,32.2 L31.5,23.8 C35.0,24.7 45.1,25.5 43.6,30.6 Z" fill="#FFFFFF" filter="url(#sombra)"/>
+                </g>
+                <g filter="url(#sombra)">
+                    <rect x="40" y="160" width="120" height="4" rx="2" fill="#1E293B"/>
+                    <path d="M48,105 L152,105 L138,148 L62,148 Z" fill="#2D3748" stroke="#4A5568" stroke-width="2"/>
+                    <path d="M50,108 L150,108 M75,105 L78,148 M125,105 L122,148" stroke="#1A202C" stroke-width="1.5" opacity="0.4"/>
+                    <g stroke="#1A202C" stroke-width="1.5">
+                        <circle cx="76" cy="156" r="14" fill="url(#oroCripto)"/><circle cx="76" cy="156" r="6" fill="#1E293B"/><circle cx="76" cy="156" r="2" fill="#FFF"/>
+                        <circle cx="124" cy="156" r="14" fill="url(#oroCripto)"/><circle cx="124" cy="156" r="6" fill="#1E293B"/><circle cx="124" cy="156" r="2" fill="#FFF"/>
+                    </g>
+                </g>
+                </g>
+            </svg>
+            <span class="brand-name">CryptoSniffer</span>
+        </div>
+        <div class="header-stats" id="titleStats" role="status">
+            <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+            <span class="stat-extra" id="headerStatus">Detenido</span>
+            <span title="Inspecciones"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> <b id="headerInspections">0</b></span>
+            <span title="Encontrado"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.8 9.2c-.5-.8-1.5-1.2-2.8-1.2-1.6 0-2.8.8-2.8 2s1 1.7 2.8 2 2.8.8 2.8 2-1.2 2-2.8 2c-1.3 0-2.3-.4-2.8-1.2"/></svg> <b class="found-amount" id="headerFound">$0.00</b></span>
+        </div>
+        <button class="exit-btn" type="button" aria-label="Salir" title="Salir" onclick="showExitModal()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+    </header>
+    
+    <div class="main-container" id="mainContainer">
+        <!-- Pantalla principal -->
+        <div class="home-screen hidden" id="homeScreen">
+            <svg class="home-logo" viewBox="0 0 200 200" role="img" aria-label="Logo CryptoSniffer"><use href="#logoShapes"/></svg>
+            <div class="home-title">CryptoSniffer<small>V1.0 · PREMIUM</small></div>
+            <div class="home-actions">
+                <button class="home-btn primary" type="button" onclick="startSimulation()">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.9-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg>
+                    INICIAR
+                </button>
+                <button class="home-btn" type="button" onclick="openSheet('settingsSheet')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    AJUSTES
+                </button>
+                <button class="home-btn" type="button" onclick="openSheet('supportSheet')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg>
+                    SOPORTE
+                </button>
+            </div>
+        </div>
+        
+        <!-- Pantalla de configuración -->
+        <div class="config-screen" id="configScreen">
+            <div class="config-box">
+                <button class="fs-btn" id="fsBtn" type="button" onclick="toggleFullscreen()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                    <span id="fsLabel">PANTALLA COMPLETA</span>
+                </button>
+                <p class="fs-hint" id="fsHint">En iPhone: Compartir → "Añadir a pantalla de inicio" para verla a pantalla completa.</p>
+                <div class="config-title">=== CRYPTO SNIFFER ===</div>
+                
+                <div class="config-field">
+                    <label>Tiempo para resultado positivo (segundos)</label>
+                    <input type="number" id="timeToWin" value="15" min="5" max="300">
+                </div>
+                
+                <div class="config-field">
+                    <label>Cantidad a "encontrar" (USD)</label>
+                    <input type="number" id="usdAmount" value="421500" step="1" min="1">
+                </div>
+                
+                <button class="start-btn" onclick="goToHome()">
+                    CONTINUAR
+                </button>
+            </div>
+        </div>
+        
+        <!-- Terminal -->
+        <div class="terminal" id="terminal">
+            <div class="terminal-content" id="terminalContent"></div>
+        </div>
+        
+        <!-- Barra inferior con botones -->
+        <div class="bottom-bar">
+            <div class="btn-left">
+                <button class="btn btn-continue" id="continueBtn" onclick="continueSearching()" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.9-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></svg>
+                    CONTINUAR
+                </button>
+                <button class="btn btn-stop" id="stopBtn" onclick="stopSearching()" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>
+                    DETENER
+                </button>
+            </div>
+            <div class="btn-right">
+                <button class="btn btn-download" id="downloadBtn" onclick="downloadAllResults()" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                    EXPORTAR
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ajustes -->
+    <div class="sheet-overlay" id="settingsSheet" onclick="if (event.target === this) closeSheet('settingsSheet')">
+        <div class="sheet" role="dialog" aria-label="Ajustes">
+            <h2>Ajustes</h2>
+            <div class="sheet-row">
+                <span>Pantalla completa</span>
+                <button class="sheet-btn" type="button" onclick="toggleFullscreen()">Activar / salir</button>
+            </div>
+            <div class="sheet-row">
+                <span>Tamaño de texto de la terminal</span>
+                <div class="sheet-actions">
+                    <button class="sheet-btn" type="button" aria-label="Reducir texto" onclick="changeTerminalFont(-1)">A−</button>
+                    <button class="sheet-btn" type="button" aria-label="Aumentar texto" onclick="changeTerminalFont(1)">A+</button>
+                </div>
+            </div>
+            <button class="sheet-btn close" type="button" onclick="closeSheet('settingsSheet')">CERRAR</button>
+        </div>
+    </div>
+    
+    <!-- Soporte -->
+    <div class="sheet-overlay" id="supportSheet" onclick="if (event.target === this) closeSheet('supportSheet')">
+        <div class="sheet" role="dialog" aria-label="Soporte">
+            <h2>Soporte</h2>
+            <p>¿Necesitas ayuda? Configura el tiempo y el monto, pulsa CONTINUAR, y en la pantalla principal pulsa INICIAR. Usa CONTINUAR, DETENER y EXPORTAR desde la barra inferior.</p>
+            <p>Desliza la terminal hacia los lados para ver todas las columnas.</p>
+            <button class="sheet-btn close" type="button" onclick="closeSheet('supportSheet')">CERRAR</button>
+        </div>
+    </div>
+    
+    <!-- Modal de salida -->
+    <div class="modal-overlay" id="exitModal">
+        <div class="modal">
+            <div class="modal-title">Seguro que deseas salir?</div>
+            <div class="modal-buttons">
+                <button class="modal-btn yes" onclick="confirmExit()">SÍ</button>
+                <button class="modal-btn no" onclick="hideExitModal()">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lista BIP-39
+        const bip39Words = [
+            "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse",
+            "access", "accident", "account", "accuse", "achieve", "acid", "acoustic", "acquire", "across", "act",
+            "action", "actor", "actual", "adapt", "add", "addict", "address", "adjust", "admit", "adult",
+            "advance", "advice", "aerobic", "affair", "afford", "afraid", "again", "age", "agent", "agree",
+            "ahead", "aim", "air", "airport", "aisle", "alarm", "album", "alcohol", "alert", "alien",
+            "all", "alley", "allow", "almost", "alone", "alpha", "already", "also", "alter", "always",
+            "amateur", "amazing", "among", "amount", "amused", "analyst", "anchor", "ancient", "anger", "angle",
+            "angry", "animal", "ankle", "announce", "annual", "another", "answer", "antenna", "antique", "anxiety",
+            "any", "apart", "apology", "appear", "apple", "approve", "april", "arch", "arctic", "area",
+            "arena", "argue", "arm", "armed", "armor", "army", "around", "arrange", "arrest", "arrive",
+            "arrow", "art", "artefact", "artist", "artwork", "ask", "aspect", "assault", "asset", "assist",
+            "assume", "asthma", "athlete", "atom", "attack", "attend", "attitude", "attract", "auction", "audit",
+            "august", "aunt", "author", "auto", "autumn", "average", "avocado", "avoid", "awake", "aware",
+            "away", "awesome", "awful", "awkward", "axis", "baby", "bachelor", "bacon", "badge", "bag",
+            "balance", "balcony", "ball", "bamboo", "banana", "banner", "bar", "barely", "bargain", "barrel",
+            "base", "basic", "basket", "battle", "beach", "bean", "beauty", "because", "become", "beef",
+            "before", "begin", "behave", "behind", "believe", "below", "belt", "bench", "benefit", "best",
+            "betray", "better", "between", "beyond", "bicycle", "bid", "bike", "bind", "biology", "bird",
+            "birth", "bitter", "black", "blade", "blame", "blanket", "blast", "bleak", "bless", "blind",
+            "blood", "blossom", "blouse", "blue", "blur", "blush", "board", "boat", "body", "boil",
+            "bomb", "bone", "bonus", "book", "boost", "border", "boring", "borrow", "boss", "bottom",
+            "bounce", "box", "boy", "bracket", "brain", "brake", "branch", "brand", "brass", "brave",
+            "bread", "breeze", "brick", "bridge", "brief", "bright", "brisk", "broad", "broken", "bronze",
+            "brother", "brown", "brush", "bubble", "buddy", "budget", "buffalo", "build", "bulb", "bulk",
+            "bullet", "bundle", "bunker", "burden", "burger", "burst", "bus", "business", "busy", "butter",
+            "buyer", "buzz", "cabbage", "cabin", "cable", "cactus", "cage", "cake", "call", "calm",
+            "camera", "camp", "can", "canal", "cancel", "candy", "cannon", "canoe", "canvas", "canyon",
+            "capable", "capital", "captain", "car", "carbon", "card", "cargo", "carpet", "carry", "cart",
+            "case", "cash", "casino", "castle", "casual", "cat", "catalog", "catch", "category", "cattle",
+            "caught", "cause", "caution", "cave", "ceiling", "celery", "cement", "census", "century", "cereal",
+            "certain", "chair", "chalk", "champion", "change", "chaos", "chapter", "charge", "chase", "chat",
+            "cheap", "check", "cheese", "chef", "cherry", "chest", "chicken", "chief", "child", "chimney",
+            "choice", "choose", "chronic", "chuckle", "chunk", "churn", "cigar", "cinnamon", "circle", "citizen",
+            "city", "civil", "claim", "clap", "clarify", "claw", "clay", "clean", "clerk", "click",
+            "client", "cliff", "climb", "clinic", "clip", "clock", "clog", "close", "cloth", "cloud",
+            "clown", "club", "clump", "cluster", "clutch", "coach", "coast", "coconut", "code", "coffee",
+            "coil", "coin", "collect", "color", "column", "combine", "come", "comfort", "comic", "common",
+            "company", "concert", "conduct", "confirm", "congress", "connect", "consider", "control", "convert", "cook",
+            "cool", "copper", "copy", "coral", "core", "corn", "correct", "cost", "cotton", "couch",
+            "country", "couple", "course", "cousin", "cover", "coyote", "crack", "cradle", "craft", "cram",
+            "crane", "crash", "crater", "crawl", "crazy", "cream", "credit", "creek", "crew", "cricket",
+            "crime", "crisp", "critic", "crop", "cross", "crouch", "crowd", "cruel", "cruise", "crumble",
+            "crunch", "crush", "cry", "crystal", "cube", "culture", "cup", "cupboard", "curious", "current",
+            "curtain", "curve", "cushion", "custom", "cute", "cycle", "dad", "damage", "damp", "dance",
+            "danger", "daring", "dash", "daughter", "dawn", "day", "deal", "debate", "debris", "decade",
+            "december", "decide", "decline", "decorate", "decrease", "deer", "defense", "define", "degree", "delay",
+            "deliver", "demand", "demise", "denial", "dentist", "deny", "depart", "depend", "deposit", "depth",
+            "deputy", "derive", "describe", "desert", "design", "desk", "despair", "destroy", "detail", "detect",
+            "develop", "device", "devote", "diagram", "dial", "diamond", "diary", "dice", "diesel", "diet",
+            "differ", "digital", "dignity", "dilemma", "dinner", "dinosaur", "direct", "dirt", "disagree", "discover",
+            "disease", "dish", "dismiss", "disorder", "display", "distance", "dive", "divide", "divorce", "dizzy",
+            "doctor", "document", "dog", "doll", "dolphin", "domain", "donate", "donkey", "donor", "door",
+            "dose", "double", "dove", "draft", "dragon", "drain", "drama", "drastic", "draw", "dream",
+            "dress", "drift", "drill", "drink", "drip", "drive", "drop", "drum", "dry", "duck",
+            "dumb", "dune", "during", "dust", "dutch", "duty", "dwarf", "dynamic", "eager", "eagle",
+            "early", "earn", "earth", "ease", "east", "easy", "echo", "ecology", "economy", "edge",
+            "edit", "educate", "effort", "egg", "eight", "either", "elbow", "elder", "electric", "elegant",
+            "element", "elephant", "elevator", "elite", "else", "embark", "embrace", "emerge", "emotion", "employ",
+            "empty", "enable", "enact", "end", "enemy", "energy", "enforce", "engage", "engine", "enhance",
+            "enjoy", "enlist", "enough", "enrich", "enroll", "ensure", "enter", "entire", "entry", "envelope",
+            "episode", "equal", "equip", "erase", "erode", "escape", "essay", "essence", "estate", "eternal",
+            "ethics", "evidence", "evil", "evoke", "exact", "example", "excess", "exchange", "excite", "exclude",
+            "excuse", "execute", "exercise", "exhaust", "exhibit", "exile", "exist", "exit", "exotic", "expand",
+            "expect", "expire", "explain", "expose", "express", "extend", "extra", "eye", "fabric", "face",
+            "fact", "factor", "factory", "faculty", "fade", "fail", "faint", "fair", "faith", "fall",
+            "false", "fame", "family", "famous", "fancy", "fantasy", "farm", "fashion", "fat", "fatal",
+            "father", "fatigue", "fault", "favorite", "feature", "february", "federal", "fee", "feed", "feel",
+            "fellow", "female", "fence", "festival", "fetch", "fever", "few", "fiber", "fiction", "field",
+            "fierce", "fifth", "fight", "figure", "file", "film", "filter", "final", "finance", "find",
+            "fine", "finger", "finish", "fire", "firm", "first", "fiscal", "fish", "fit", "fitness",
+            "fix", "flag", "flame", "flash", "flat", "flavor", "flee", "flight", "flip", "float",
+            "flock", "floor", "flower", "fluid", "flush", "fly", "foam", "focus", "fog", "foil",
+            "fold", "follow", "food", "foot", "force", "forest", "forget", "fork", "form", "fossil",
+            "foster", "found", "fox", "fragile", "frame", "frequent", "fresh", "friend", "fringe", "frog",
+            "front", "frost", "frown", "frozen", "fruit", "fuel", "full", "fumble", "fun", "function",
+            "fund", "funeral", "funny", "fur", "fury", "future", "gadget", "gain", "galaxy", "gallery",
+            "game", "gap", "garage", "garden", "garlic", "gas", "gate", "gauge", "gear", "gender",
+            "general", "genius", "gentle", "genuine", "gesture", "ghost", "giant", "gift", "giggle", "ginger",
+            "giraffe", "girl", "give", "glad", "glance", "glare", "glass", "glide", "glimpse", "globe",
+            "gloom", "glory", "glove", "glow", "glue", "goat", "gold", "good", "goose", "gorilla",
+            "gospel", "gossip", "govern", "gown", "grab", "grace", "grade", "grain", "grand", "grant",
+            "grape", "grass", "gravity", "great", "green", "grid", "grief", "grill", "grin", "grip",
+            "grocery", "ground", "group", "grow", "guard", "guess", "guest", "guide", "guilt", "guitar",
+            "gulf", "gum", "gun", "gust", "guy", "gym", "habit", "hair", "half", "hall",
+            "halt", "hand", "handle", "hang", "happen", "happy", "harbor", "hard", "harsh", "harvest",
+            "hat", "have", "hawk", "hazard", "head", "health", "heart", "heavy", "hedge", "height",
+            "hello", "helmet", "help", "hen", "herb", "here", "hero", "hidden", "high", "hill",
+            "hint", "hip", "hire", "history", "hobby", "hockey", "hold", "hole", "holiday", "hollow",
+            "holy", "home", "honey", "hood", "hope", "horn", "horror", "horse", "hospital", "host",
+            "hotel", "hour", "house", "hover", "how", "hub", "huge", "human", "humble", "humor",
+            "hundred", "hungry", "hunt", "hurdle", "hurry", "hurt", "husband", "hybrid", "ice", "icon",
+            "idea", "identify", "idle", "ignore", "ill", "illegal", "image", "imagine", "impact", "imply",
+            "import", "impose", "impress", "improve", "impulse", "inch", "incident", "income", "increase", "index",
+            "indicate", "indoor", "industry", "infant", "inform", "inhale", "inherit", "initial", "inject", "injury",
+            "inmate", "inner", "innocent", "input", "inquiry", "insane", "insect", "insert", "inside", "insight",
+            "insist", "inspire", "install", "instance", "instant", "instead", "instinct", "instruct", "instrument", "insult",
+            "intact", "intend", "intense", "intent", "interact", "interest", "internal", "internet", "interpret", "interrupt",
+            "interval", "intimate", "into", "introduce", "invade", "invent", "invest", "invite", "involve", "iron",
+            "island", "isolate", "issue", "item", "ivory", "jacket", "jail", "jam", "jar", "jaw",
+            "jazz", "jealous", "jeans", "jelly", "jewel", "job", "jog", "join", "joke", "journey",
+            "joy", "judge", "juice", "jump", "jungle", "junior", "junk", "jury", "just", "kangaroo",
+            "keen", "keep", "kettle", "key", "kick", "kid", "kidney", "kill", "kind", "king",
+            "kiss", "kit", "kitchen", "kite", "kitten", "kiwi", "knee", "knife", "knock", "know",
+            "label", "labor", "ladder", "lady", "lake", "lamp", "land", "lane", "language", "laptop",
+            "large", "later", "latin", "laugh", "laundry", "law", "lawn", "layer", "lazy", "lead",
+            "leaf", "league", "leak", "lean", "leap", "learn", "lease", "leave", "lecture", "left",
+            "leg", "legal", "legend", "lemon", "lend", "length", "lens", "leopard", "lesson", "letter",
+            "level", "lever", "liar", "liberty", "library", "license", "life", "lift", "light", "like",
+            "limb", "limit", "limp", "line", "link", "lion", "liquid", "list", "listen", "literature",
+            "little", "live", "lizard", "load", "loan", "lobster", "local", "location", "lock", "locust",
+            "lodge", "log", "logic", "logo", "lone", "long", "look", "loop", "loose", "lord",
+            "lose", "loss", "lot", "loud", "love", "low", "loyal", "luck", "lucky", "luggage",
+            "lumber", "lump", "lunch", "lung", "luxury", "machine", "mad", "magazine", "magic", "magnet",
+            "maid", "mail", "main", "major", "make", "male", "mall", "mammal", "man", "manage",
+            "mango", "manor", "manual", "many", "map", "marble", "march", "margin", "marine", "mark",
+            "market", "marriage", "marry", "marsh", "mask", "mass", "master", "match", "mate", "matrix",
+            "matter", "mature", "maximum", "maybe", "mayor", "maze", "meal", "mean", "measure", "meat",
+            "mechanic", "medal", "media", "medicine", "medium", "meet", "melody", "melt", "member", "memory",
+            "mental", "mention", "menu", "mercy", "merge", "merit", "merry", "mesh", "message", "metal",
+            "method", "middle", "midnight", "mild", "mile", "milk", "mill", "mimic", "mind", "mine",
+            "minimum", "minister", "minor", "minute", "miracle", "mirror", "misery", "miss", "mistake", "mix",
+            "mobile", "mode", "model", "moderate", "modern", "modest", "modify", "moist", "moment", "money",
+            "monitor", "monkey", "month", "mood", "moon", "moral", "more", "morning", "mosquito", "most",
+            "mother", "motion", "motor", "mount", "mouse", "mouth", "move", "movie", "much", "mud",
+            "muffin", "mule", "multiple", "murder", "muscle", "museum", "mushroom", "music", "must", "mutual",
+            "myself", "mystery", "myth", "nail", "name", "napkin", "narrow", "nasty", "nation", "nature",
+            "navy", "near", "neat", "neck", "need", "needle", "negative", "neglect", "nerve", "nest",
+            "net", "network", "neutral", "never", "new", "news", "next", "nice", "niche", "niece",
+            "night", "nine", "noble", "nod", "noise", "nominate", "none", "noodle", "noon", "normal",
+            "north", "nose", "note", "nothing", "notice", "novel", "now", "nuclear", "number", "nurse",
+            "nut", "oak", "obey", "object", "oblige", "observe", "obtain", "obvious", "occur", "ocean",
+            "october", "odd", "off", "offer", "office", "officer", "often", "oil", "okay", "old",
+            "olive", "olympic", "omit", "once", "one", "onion", "online", "only", "open", "opera",
+            "operate", "opinion", "oppose", "option", "orange", "orbit", "orchard", "order", "ordinary", "organ",
+            "orient", "origin", "orphan", "ostrich", "other", "outdoor", "outer", "outlet", "output", "outside",
+            "oval", "oven", "over", "owe", "own", "owner", "oxygen", "oyster", "ozone", "pace",
+            "pack", "package", "packet", "pad", "page", "pain", "paint", "pair", "palace", "pale",
+            "palm", "pan", "panel", "panic", "paper", "parade", "parent", "park", "parrot", "part",
+            "particle", "party", "pass", "passion", "past", "patch", "path", "patient", "patrol", "pattern",
+            "pause", "pave", "payment", "peace", "peach", "peak", "peanut", "pear", "pearl", "peasant",
+            "peel", "peer", "pen", "penalty", "pencil", "people", "pepper", "perfect", "permit", "person",
+            "pet", "phone", "photo", "phrase", "physical", "piano", "pick", "picture", "piece", "pig",
+            "pigeon", "pile", "pilot", "pin", "pine", "pink", "pipe", "pistol", "pitch", "pizza",
+            "place", "plain", "plan", "plane", "planet", "plant", "plastic", "plate", "platform", "play",
+            "plaza", "plead", "please", "pledge", "plenty", "plot", "plow", "plug", "plunge", "pocket",
+            "poem", "poet", "point", "poison", "polar", "pole", "police", "policy", "polite", "political",
+            "poll", "pollute", "pond", "pool", "poor", "popular", "port", "portion", "pose", "position",
+            "positive", "possess", "possible", "post", "pot", "potato", "pound", "pour", "powder", "power",
+            "practice", "praise", "pray", "preach", "precious", "predict", "prefer", "prepare", "present", "preserve",
+            "president", "press", "pretty", "prevent", "price", "pride", "primary", "prime", "prince", "princess",
+            "print", "prior", "prison", "private", "prize", "probable", "problem", "produce", "profit", "program",
+            "progress", "project", "promise", "promote", "proof", "property", "prosper", "protect", "proud", "prove",
+            "provide", "public", "pudding", "pull", "pulse", "pump", "punch", "pupil", "puppy", "purchase",
+            "pure", "purple", "purpose", "purse", "push", "put", "puzzle", "pyramid", "quality", "quantum",
+            "quarter", "queen", "question", "quick", "quiet", "quit", "quiz", "quote", "rabbit", "race",
+            "rack", "radar", "radio", "rail", "rain", "raise", "rally", "ramp", "random", "range",
+            "rank", "rapid", "rare", "rate", "rather", "raven", "raw", "ray", "reach", "react",
+            "read", "ready", "real", "reality", "realize", "really", "reason", "rebel", "recall", "receive",
+            "recent", "recess", "recipe", "record", "recover", "recruit", "red", "reduce", "refer", "reflect",
+            "reform", "refuse", "regard", "region", "regret", "regular", "reject", "relate", "relax", "release",
+            "relevant", "relief", "rely", "remain", "remark", "remedy", "remember", "remind", "remote", "remove",
+            "render", "rent", "repair", "repeat", "replace", "report", "represent", "reproduce", "request", "rescue",
+            "research", "resemble", "reserve", "resist", "resolve", "resort", "resource", "respect", "respond", "rest",
+            "result", "retain", "retire", "retreat", "return", "reveal", "review", "reward", "rhythm", "rice",
+            "rich", "ride", "rifle", "right", "rigid", "ring", "riot", "rise", "risk", "ritual",
+            "rival", "river", "road", "roast", "rob", "robot", "robust", "rocket", "rod", "role",
+            "roll", "roof", "room", "root", "rope", "rose", "rotate", "rough", "round", "route",
+            "royal", "rub", "rubber", "rude", "rug", "rule", "rumor", "run", "rural", "rush",
+            "rust", "sad", "safe", "safety", "sail", "salad", "salary", "sale", "salt", "sample",
+            "sand", "sandwich", "satellite", "satisfy", "sauce", "sausage", "save", "saw", "say", "scale",
+            "scan", "scare", "scatter", "scene", "scent", "schedule", "scheme", "school", "science", "scissors",
+            "scoop", "scope", "score", "scout", "scrap", "scream", "screen", "script", "scroll", "scrub",
+            "sea", "search", "season", "seat", "second", "secret", "section", "sector", "secure", "security",
+            "seed", "seek", "seem", "segment", "select", "self", "sell", "seminar", "senior", "sense",
+            "sentence", "separate", "sequence", "series", "serious", "serve", "service", "session", "set", "setting",
+            "settle", "seven", "several", "severe", "sew", "shade", "shadow", "shaft", "shake", "shall",
+            "shallow", "shame", "shape", "share", "shark", "sharp", "shave", "she", "shed", "sheep",
+            "sheet", "shelf", "shell", "shelter", "shield", "shift", "shine", "ship", "shirt", "shiver",
+            "shock", "shoe", "shoot", "shop", "short", "shot", "should", "shoulder", "shout", "show",
+            "shower", "shrug", "shut", "shy", "sick", "side", "siege", "sight", "sign", "signal",
+            "signature", "signify", "silent", "silk", "silly", "silver", "similar", "simple", "since", "sing",
+            "singer", "single", "sink", "sir", "sister", "sit", "site", "situation", "six", "size",
+            "skate", "sketch", "ski", "skill", "skin", "skirt", "skull", "sky", "slab", "slam",
+            "slap", "slave", "sleep", "slice", "slide", "slight", "slim", "slip", "slogan", "slope",
+            "slow", "small", "smart", "smash", "smell", "smile", "smoke", "smooth", "snack", "snake",
+            "snap", "snow", "soap", "soccer", "social", "sock", "socket", "soda", "soft", "soil",
+            "solar", "soldier", "solid", "solution", "solve", "some", "somebody", "someone", "something", "sometimes",
+            "somewhere", "son", "song", "soon", "sore", "sorrow", "sorry", "sort", "soul", "sound",
+            "soup", "source", "south", "space", "spare", "spark", "speak", "speaker", "special", "species",
+            "specific", "speech", "speed", "spell", "spend", "sphere", "spider", "spill", "spin", "spirit",
+            "spite", "splash", "split", "spoil", "sponge", "spoon", "sport", "spot", "spouse", "spray",
+            "spread", "spring", "spy", "square", "squeeze", "squirrel", "stable", "staff", "stage", "stair",
+            "stake", "stall", "stamp", "stand", "standard", "star", "stare", "start", "starve", "state",
+            "station", "statue", "status", "stay", "steady", "steak", "steal", "steam", "steel", "steep",
+            "steer", "stem", "step", "stereo", "stick", "still", "sting", "stock", "stomach", "stone",
+            "stool", "stop", "store", "storm", "story", "stove", "straight", "strain", "strange", "stranger",
+            "straw", "stream", "street", "strength", "stress", "stretch", "strict", "strike", "string", "strip",
+            "stroke", "strong", "structure", "struggle", "student", "studio", "study", "stuff", "stumble", "style",
+            "subject", "submit", "subway", "success", "such", "sudden", "suffer", "sugar", "suggest", "suit",
+            "summer", "summit", "sun", "super", "supply", "support", "suppose", "suppress", "supreme", "sure",
+            "surface", "surge", "surprise", "surround", "survey", "survive", "suspect", "sustain", "swallow", "swamp",
+            "swan", "swap", "swarm", "swear", "sweat", "sweep", "sweet", "swell", "swift", "swim",
+            "swing", "switch", "sword", "symbol", "symptom", "system", "table", "tablet", "tackle", "tag",
+            "tail", "take", "tale", "talent", "talk", "tall", "tank", "tap", "tape", "target",
+            "task", "taste", "tattoo", "taxi", "tea", "teach", "team", "tear", "tease", "technical",
+            "technology", "teen", "teeth", "telephone", "telescope", "television", "tell", "temperature", "temple", "tempo",
+            "temporary", "ten", "tenant", "tend", "tender", "tennis", "tent", "term", "terminal", "terrible",
+            "territory", "terror", "test", "text", "than", "thank", "that", "theater", "theme", "then",
+            "theory", "therapy", "there", "therefore", "these", "they", "thick", "thief", "thin", "thing",
+            "think", "third", "thirst", "thirteen", "thirty", "this", "those", "though", "thought", "thousand",
+            "thread", "threat", "three", "thrive", "throat", "throne", "through", "throw", "thumb", "thunder",
+            "ticket", "tide", "tidy", "tie", "tiger", "tight", "tile", "till", "time", "timber",
+            "tiny", "tip", "tire", "tired", "tissue", "title", "toast", "tobacco", "today", "toe",
+            "together", "toilet", "token", "tolerate", "tomato", "tomorrow", "tone", "tongue", "tonight", "too",
+            "tool", "tooth", "top", "topic", "torch", "tornado", "toss", "total", "touch", "tough",
+            "tour", "tourist", "toward", "towel", "tower", "town", "toxic", "toy", "trace", "track",
+            "trade", "tradition", "traffic", "tragic", "trail", "train", "training", "trait", "tram", "transfer",
+            "transform", "translate", "transport", "trap", "trash", "travel", "tray", "treasure", "treat", "tree",
+            "trend", "trial", "tribe", "trick", "trip", "trophy", "trouble", "trousers", "truck", "true",
+            "trumpet", "trunk", "trust", "truth", "try", "tube", "tuna", "tune", "tunnel", "turkey",
+            "turn", "turtle", "twelve", "twenty", "twice", "twin", "twist", "two", "type", "typical",
+            "ugly", "ultimate", "umbrella", "unable", "uncle", "uncover", "under", "undergo", "uniform", "union",
+            "unique", "unit", "unite", "universe", "university", "unknown", "unless", "unlike", "until", "unusual",
+            "unveil", "update", "upgrade", "uphold", "upon", "upper", "upset", "urban", "urge", "urgent",
+            "usage", "use", "used", "useful", "useless", "usual", "utility", "utilize", "utter", "vacant",
+            "vacation", "vaccine", "vague", "valid", "valley", "value", "valve", "van", "vanish", "vapor",
+            "variable", "variant", "variation", "variety", "various", "vary", "vast", "vault", "vehicle", "veil",
+            "vein", "velocity", "velvet", "vendor", "venture", "venue", "verb", "verify", "version", "vertical",
+            "very", "vessel", "veteran", "viable", "vibrate", "vice", "victim", "victory", "video", "view",
+            "village", "vintage", "violate", "violence", "violent", "viral", "virtual", "virtue", "virus", "visa",
+            "visible", "vision", "visit", "visual", "vital", "vitamin", "vivid", "vocal", "voice", "void",
+            "volume", "volunteer", "vote", "vowel", "voyage", "wage", "wagon", "waist", "wait", "wake",
+            "walk", "wall", "wander", "want", "war", "warm", "warn", "wash", "wasp", "waste",
+            "watch", "water", "wave", "way", "weak", "wealth", "weapon", "wear", "weather", "weave",
+            "wedding", "week", "weekend", "weigh", "weight", "weird", "welcome", "west", "wet", "whale",
+            "what", "wheat", "wheel", "when", "where", "whether", "which", "while", "whip", "whisper",
+            "whistle", "white", "who", "whole", "whom", "whose", "why", "wide", "widespread", "widow",
+            "width", "wife", "wild", "will", "win", "wind", "window", "wine", "wing", "wink",
+            "winner", "winter", "wipe", "wire", "wisdom", "wise", "wish", "wit", "witch", "withdraw",
+            "witness", "wolf", "woman", "wonder", "wood", "wool", "word", "work", "world", "worry",
+            "worth", "would", "wound", "wrap", "wreck", "wrestle", "wrist", "write", "writer", "wrong",
+            "yard", "yarn", "year", "yellow", "yes", "yesterday", "yield", "you", "young", "youth",
+            "zebra", "zero", "zone", "zoo"
+        ];
+        
+        const chars = "0123456789abcdef";
+        const btcPrice = 78794.20;
+        
+        let isRunning = false;
+        let inspectionCount = 0;
+        let foundTotalBTC = 0;
+        let scanInterval;
+        let lines = [];
+        const maxLines = 200;
+        let config = {};
+        let foundWallets = [];
+        
+        function getCurrentDateTime() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        function generateMnemonic() {
+            let words = [];
+            for (let i = 0; i < 12; i++) {
+                words.push(bip39Words[Math.floor(Math.random() * bip39Words.length)]);
+            }
+            return words.join(" ");
+        }
+        
+        function generatePrivateKey() {
+            let key = "";
+            for (let i = 0; i < 64; i++) {
+                key += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return key;
+        }
+        
+        function generateAddress() {
+            const prefixes = ["1", "3", "bc1q"];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            let addr = prefix;
+            // Total 35 caracteres exactos
+            const remaining = 35 - prefix.length;
+            for (let i = 0; i < remaining; i++) {
+                addr += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return addr;
+        }
+        
+        function generateRandomBTC() {
+            const targetUSD = Number(config.targetUSD) || 0;
+            if (targetUSD <= 0) return "0.00000000";
+
+            const targetBTC = targetUSD / btcPrice;
+            const tolerance = targetBTC * 0.08;
+            const offset = (Math.random() - 0.5) * tolerance * 2;
+            let amount = targetBTC + offset;
+            amount = Math.max(0.000001, amount);
+            return amount.toFixed(8);
+        }
+        
+        function formatUSD(btc) {
+            return (btc * btcPrice).toFixed(2);
+        }
+        
+        function truncateMnemonic(mnemonic, maxLen) {
+            if (mnemonic.length <= maxLen) return mnemonic;
+            return mnemonic.substring(0, maxLen - 3) + "...";
+        }
+        
+        function generateLine(isValid = false) {
+            const address = generateAddress();
+            const mnemonic = generateMnemonic();
+            const btc = isValid ? generateRandomBTC() : "0.00000000";
+            const usd = formatUSD(parseFloat(btc));
+            
+            return {
+                date: getCurrentDateTime(),
+                address: address,
+                mnemonic: mnemonic,
+                privateKey: generatePrivateKey(),
+                isValid: isValid,
+                btc: btc,
+                usd: usd
+            };
+        }
+        
+        function createLineElement(data) {
+            const div = document.createElement('div');
+            div.className = `line ${data.isValid ? 'valid' : 'invalid'}`;
+            
+            const type = data.isValid ? "Type: Valid" : "Type: Invalid";
+            const btcShort = parseFloat(data.btc).toFixed(3);
+            const usdShort = parseFloat(data.usd).toFixed(2);
+            
+            // Formato compacto con mínimo espacio
+            div.innerHTML = `
+                <div class="data-row">
+                    <span class="col-date">Date and time: ${data.date}</span>
+                    <span class="col-sep">|</span>
+                    <span class="col-address">Address: ${data.address}</span>
+                    <span class="col-sep">|</span>
+                    <span class="col-mnemonic">Mnemonic phrase: ${truncateMnemonic(data.mnemonic, 90)}</span>
+                    <span class="col-sep">|</span>
+                    <span class="col-type">${type}</span>
+                    <span class="col-sep">|</span>
+                    <span class="col-balance">${btcShort} btc ($${usdShort})</span>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function addLine(data) {
+            const content = document.getElementById('terminalContent');
+            const lineEl = createLineElement(data);
+            
+            lines.push({ element: lineEl, data: data });
+            content.appendChild(lineEl);
+            
+            while (lines.length > maxLines) {
+                const old = lines.shift();
+                old.element.remove();
+            }
+            
+            content.scrollTop = content.scrollHeight;
+        }
+        
+        function downloadAllResults() {
+            if (foundWallets.length === 0) return;
+            
+            let content = "=== BRUTEFORCE BTC RECOVERY ===\n\n";
+            content += `Total Wallets Found: ${foundWallets.length}\n`;
+            content += `Total BTC: ${foundTotalBTC.toFixed(8)}\n`;
+            content += `Total USD: $${formatUSD(foundTotalBTC)}\n`;
+            content += `Date: ${new Date().toLocaleString()}\n\n`;
+            content += "========================================\n\n";
+            
+            foundWallets.forEach((wallet, index) => {
+                content += `WALLET #${index + 1}\n`;
+                content += `Date and time: ${wallet.date}\n`;
+                content += `Address: ${wallet.address}\n`;
+                content += `Mnemonic: ${wallet.mnemonic}\n`;
+                content += `Private Key: ${wallet.privateKey}\n`;
+                content += `Balance: ${wallet.btc} BTC ($${wallet.usd} USD)\n\n`;
+            });
+            
+            content += "========================================\n";
+            content += "⚠️ IMPORTANTE: Esto es una SIMULACIÓN.\n";
+            content += "Los datos mostrados NO son reales.\n";
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `BTC_WALLETS_FOUND_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function compactCount(n) {
+            if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+            if (n >= 1e4) return (n / 1e3).toFixed(1) + 'k';
+            return n.toLocaleString();
+        }
+        
+        function updateStatusIndicator() {
+            document.getElementById('statusDot').classList.toggle('running', isRunning);
+            document.getElementById('headerStatus').textContent = isRunning ? 'Escaneando' : 'Detenido';
+        }
+        
+        function updateTitleStats() {
+            const foundStr = foundTotalBTC.toFixed(9);
+            const usdStr = formatUSD(foundTotalBTC);
+            document.getElementById('headerInspections').textContent = compactCount(inspectionCount);
+            document.getElementById('headerFound').textContent = `$${usdStr}`;
+            document.getElementById('titleStats').title =
+                `Inspecciones ${inspectionCount.toLocaleString()} (Found ${foundStr} BTC) = $${usdStr}`;
+            updateStatusIndicator();
+        }
+        
+        function updateButtons() {
+            const continueBtn = document.getElementById('continueBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            if (isRunning) {
+                continueBtn.disabled = true;
+                continueBtn.classList.remove('active');
+                stopBtn.disabled = false;
+                stopBtn.classList.add('active');
+            } else {
+                continueBtn.disabled = false;
+                continueBtn.classList.add('active');
+                stopBtn.disabled = true;
+                stopBtn.classList.remove('active');
+            }
+            
+            downloadBtn.disabled = foundWallets.length === 0;
+            updateStatusIndicator();
+        }
+        
+        function goToHome() {
+            const time = parseInt(document.getElementById('timeToWin').value);
+            const usd = Number(document.getElementById('usdAmount').value);
+            if (!(time >= 5) || !(usd >= 1)) {
+                document.getElementById('timeToWin').reportValidity();
+                document.getElementById('usdAmount').reportValidity();
+                return;
+            }
+            document.getElementById('configScreen').classList.add('hidden');
+            document.getElementById('homeScreen').classList.remove('hidden');
+        }
+        
+        function openSheet(id) {
+            document.getElementById(id).classList.add('show');
+        }
+        
+        function closeSheet(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+        
+        let terminalFontSize = 11;
+        
+        function changeTerminalFont(delta) {
+            terminalFontSize = Math.min(18, Math.max(9, terminalFontSize + delta));
+            document.getElementById('terminalContent').style.fontSize = terminalFontSize + 'px';
+        }
+        
+        function toggleFullscreen() {
+            const el = document.documentElement;
+            const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+            const request = el.requestFullscreen || el.webkitRequestFullscreen;
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (!request) {
+                document.getElementById('fsHint').classList.add('show');
+                return;
+            }
+            if (isFs) {
+                exit.call(document);
+            } else {
+                const result = request.call(el);
+                if (result && result.catch) {
+                    result.catch(() => document.getElementById('fsHint').classList.add('show'));
+                }
+            }
+        }
+        
+        function updateFullscreenLabel() {
+            const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+            document.getElementById('fsLabel').textContent = isFs ? 'SALIR DE PANTALLA COMPLETA' : 'PANTALLA COMPLETA';
+        }
+        
+        document.addEventListener('fullscreenchange', updateFullscreenLabel);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenLabel);
+        
+        function startSimulation() {
+            config = {
+                timeToWin: parseInt(document.getElementById('timeToWin').value) * 1000,
+                targetUSD: Number(document.getElementById('usdAmount').value) || 0
+            };
+            
+            document.getElementById('configScreen').classList.add('hidden');
+            document.getElementById('homeScreen').classList.add('hidden');
+            
+            isRunning = true;
+            lines = [];
+            foundWallets = [];
+            document.getElementById('terminalContent').innerHTML = '';
+            
+            updateButtons();
+            
+            const interval = 80;
+            
+            setTimeout(() => {
+                if (isRunning) {
+                    const validData = generateLine(true);
+                    addLine(validData);
+                    foundWallets.push(validData);
+                    foundTotalBTC += parseFloat(validData.btc);
+                    updateTitleStats();
+                    
+                    isRunning = false;
+                    clearInterval(scanInterval);
+                    updateButtons();
+                }
+            }, config.timeToWin);
+            
+            scanInterval = setInterval(() => {
+                if (!isRunning) return;
+                
+                const data = generateLine(false);
+                addLine(data);
+                inspectionCount++;
+                
+                if (inspectionCount % 5 === 0) {
+                    updateTitleStats();
+                }
+            }, interval);
+        }
+        
+        function continueSearching() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            updateButtons();
+            
+            config.timeToWin = (10 + Math.random() * 30) * 1000;
+            
+            const interval = 80;
+            
+            setTimeout(() => {
+                if (isRunning) {
+                    const validData = generateLine(true);
+                    addLine(validData);
+                    foundWallets.push(validData);
+                    foundTotalBTC += parseFloat(validData.btc);
+                    updateTitleStats();
+                    
+                    isRunning = false;
+                    clearInterval(scanInterval);
+                    updateButtons();
+                }
+            }, config.timeToWin);
+            
+            scanInterval = setInterval(() => {
+                if (!isRunning) return;
+                
+                const data = generateLine(false);
+                addLine(data);
+                inspectionCount++;
+                
+                if (inspectionCount % 5 === 0) {
+                    updateTitleStats();
+                }
+            }, interval);
+        }
+        
+        function stopSearching() {
+            if (!isRunning) return;
+            
+            isRunning = false;
+            clearInterval(scanInterval);
+            updateButtons();
+        }
+        
+        function showExitModal() {
+            document.getElementById('exitModal').classList.add('show');
+        }
+        
+        function hideExitModal() {
+            document.getElementById('exitModal').classList.remove('show');
+        }
+        
+        function confirmExit() {
+            location.reload();
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            const isZoomShortcut = (e.ctrlKey || e.metaKey) && ['+', '-', '=', '_', '0'].includes(e.key);
+            if (isZoomShortcut) {
+                e.preventDefault();
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                showExitModal();
+            }
+        });
+
+        document.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        window.addEventListener('load', () => {
+            document.body.style.zoom = '100%';
+            document.body.style.setProperty('zoom', '100%');
+            document.documentElement.style.zoom = '100%';
+        });
+    </script>
+</body>
+</html>
